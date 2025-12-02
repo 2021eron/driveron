@@ -400,4 +400,114 @@
 
     window.saveData = () => {
         const date = document.getElementById('currentDateInput').value;
-        const getVal = (id) => parseFloat(document.getElementById(id).valu
+        const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+        const getStr = (id) => document.getElementById(id).value;
+        if(!appData.records) appData.records = {};
+
+        appData.records[date] = {
+            ganhoUber: getVal('ganhoUber'), ganho99: getVal('ganho99'),
+            descBonus: getStr('descBonus'), ganhoBonus: getVal('ganhoBonus'), ganhoPix: getVal('ganhoPix'),
+            gastoCombustivel: getVal('gastoCombustivel'),
+            descGasto1: getStr('descGasto1'), valGasto1: getVal('valGasto1'),
+            descGasto2: getStr('descGasto2'), valGasto2: getVal('valGasto2'),
+            descGasto3: getStr('descGasto3'), valGasto3: getVal('valGasto3'),
+            kmRodados: getVal('kmRodados'), litrosGastos: getVal('litrosGastos'), qtdViagens: getVal('qtdViagens')
+        };
+        updateSummaryFooter();
+        saveToFirebase();
+    }
+
+    window.calcStats = () => {
+        const km = parseFloat(document.getElementById('kmRodados').value) || 0;
+        const litros = parseFloat(document.getElementById('litrosGastos').value) || 0;
+        document.getElementById('kmPorLitroDisplay').textContent = (km > 0 && litros > 0) ? `${(km/litros).toFixed(2)} km/L` : "-- km/L";
+    }
+
+    function updateSummaryFooter() {
+        const date = document.getElementById('currentDateInput').value;
+        if(!appData.records) appData.records = {};
+        const r = appData.records[date] || {};
+        const rec = (r.ganhoUber||0) + (r.ganho99||0) + (r.ganhoBonus||0) + (r.ganhoPix||0);
+        const desp = (r.gastoCombustivel||0) + (r.valGasto1||0) + (r.valGasto2||0) + (r.valGasto3||0);
+        document.getElementById('totalReceita').textContent = `R$ ${rec.toFixed(2)}`;
+        document.getElementById('totalDespesa').textContent = `R$ ${desp.toFixed(2)}`;
+        const saldo = rec - desp;
+        const el = document.getElementById('totalSaldo');
+        el.textContent = `R$ ${saldo.toFixed(2)}`;
+        el.className = 'summary-value ' + (saldo >= 0 ? 'val-green' : 'val-red');
+    }
+
+    window.switchTab = (tab) => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        if(tab === 'launch') {
+            document.querySelectorAll('.tab')[0].classList.add('active');
+            document.getElementById('tab-launch').classList.add('active');
+            updateSummaryFooter();
+        } else {
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('tab-report').classList.add('active');
+            generateReports();
+        }
+    }
+
+    window.generateReports = () => {
+        const weekly = document.getElementById('weeklyView');
+        const monthly = document.getElementById('monthlyView');
+        const table = document.getElementById('totalTable');
+        weekly.innerHTML = ''; monthly.innerHTML = '';
+
+        if(!appData.records) appData.records = {};
+        const dates = Object.keys(appData.records).sort();
+        let sUber=0, s99=0, sBonus=0, sPix=0, sComb=0, sRec=0, sDesp=0;
+        let cats = {};
+        const last7 = dates.slice(-7);
+
+        dates.forEach(d => {
+            const r = appData.records[d];
+            const g = (r.ganhoUber||0)+(r.ganho99||0)+(r.ganhoBonus||0)+(r.ganhoPix||0);
+            const extra = (r.valGasto1||0)+(r.valGasto2||0)+(r.valGasto3||0);
+            const gast = (r.gastoCombustivel||0)+extra;
+            
+            [1,2,3].forEach(i => {
+                if(r['valGasto'+i] > 0) {
+                    const n = (r['descGasto'+i]||'Outros').toUpperCase().trim();
+                    cats[n] = (cats[n]||0) + r['valGasto'+i];
+                }
+            });
+
+            sUber += r.ganhoUber||0; s99 += r.ganho99||0; sBonus += r.ganhoBonus||0;
+            sPix += r.ganhoPix||0; sComb += r.gastoCombustivel||0;
+            sRec += g; sDesp += gast;
+
+            const dateFmt = d.split('-').reverse().slice(0,2).join('/');
+            const html = `<div class="history-card"><div class="history-date">${dateFmt}</div><div style="color:green">R$ ${g.toFixed(0)}</div><div style="color:red">R$ ${gast.toFixed(0)}</div></div>`;
+            monthly.innerHTML = html + monthly.innerHTML;
+            if(last7.includes(d)) weekly.innerHTML += html;
+        });
+
+        let catHtml = '';
+        for(let c in cats) catHtml += `<tr><td style="padding-left:15px">&bull; ${c}</td><td>R$ ${cats[c].toFixed(2)}</td></tr>`;
+
+        table.innerHTML = `
+            <tr><th>Categoria</th><th>Valor</th></tr>
+            <tr><td>Total Uber</td><td style="color:var(--uber-color)">R$ ${sUber.toFixed(2)}</td></tr>
+            <tr><td>Total Bônus</td><td style="color:var(--uber-color)">R$ ${sBonus.toFixed(2)}</td></tr>
+            <tr class="subtotal-row"><td>&sum; UBER + BÔNUS</td><td>R$ ${(sUber+sBonus).toFixed(2)}</td></tr>
+            <tr><td>Total 99</td><td style="color:#dba000">R$ ${s99.toFixed(2)}</td></tr>
+            <tr><td>Total Pix</td><td>R$ ${sPix.toFixed(2)}</td></tr>
+            <tr class="subtotal-row"><td class="val-green">TOTAL GANHOS</td><td class="val-green">R$ ${sRec.toFixed(2)}</td></tr>
+            <tr><td colspan="2" style="background:#eee;height:5px"></td></tr>
+            <tr><td>Combustível</td><td>R$ ${sComb.toFixed(2)}</td></tr>
+            ${catHtml}
+            <tr class="subtotal-row"><td class="val-red">TOTAL GASTOS</td><td class="val-red">R$ ${sDesp.toFixed(2)}</td></tr>
+            <tr style="background:#333;color:white;font-size:1.2em"><td>SALDO</td><td>R$ ${(sRec-sDesp).toFixed(2)}</td></tr>
+        `;
+        document.getElementById('totalReceita').textContent = `R$ ${sRec.toFixed(2)}`;
+        document.getElementById('totalDespesa').textContent = `R$ ${sDesp.toFixed(2)}`;
+        document.getElementById('totalSaldo').textContent = `R$ ${(sRec-sDesp).toFixed(2)}`;
+    }
+</script>
+
+</body>
+</html>
