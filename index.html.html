@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motorista Pro - Nuvem Oficial</title>
+    <style>
+        :root {
+            --uber-color: #5b1fa8;
+            --uber-light: #e6dcf5;
+            --99-color: #f7b500;
+            --bg-color: #f4f4f9;
+            --text-color: #333;
+            --card-bg: #fff;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body { margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color); padding-bottom: 80px; }
+        
+        /* Tela de Login */
+        #login-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; padding: 20px; background: var(--uber-color); }
+        #app-screen { display: none; }
+        .login-card { background: white; padding: 30px; border-radius: 10px; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center; }
+        .login-card h2 { color: var(--uber-color); margin-top: 0; }
+        .login-btn { width: 100%; padding: 12px; margin-top: 10px; background: var(--uber-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .register-btn { background: #333; }
+        .error-msg { color: var(--danger); font-size: 0.9em; margin-top: 10px; display: none; }
+
+        /* App Principal */
+        .container { max-width: 600px; margin: 0 auto; padding: 15px; }
+        header { background-color: var(--uber-color); color: white; padding: 15px; border-radius: 0 0 15px 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;}
+        
+        .car-info-block { width: 100%; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .logout-btn { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8em; cursor: pointer; }
+        .car-details { font-size: 0.9em; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-top: 5px; }
+        .btn-small { padding: 5px 10px; font-size: 0.8em; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-edit { background: var(--99-color); color: #000; }
+        
+        .date-nav { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; background: var(--card-bg); padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .nav-arrow { background: none; border: none; font-size: 1.5em; color: var(--uber-color); cursor: pointer; }
+        .section-title { font-size: 1.1em; margin: 20px 0 10px 0; font-weight: bold; border-left: 4px solid var(--uber-color); padding-left: 10px; }
+        .card { background: var(--card-bg); padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; }
+
+        label { display: block; margin-bottom: 5px; font-size: 0.9em; color: #666; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1em; }
+        .input-uber { border-left: 5px solid var(--uber-color); background-color: #fbf8ff; }
+        .input-99 { border-left: 5px solid var(--99-color); background-color: #fffdf5; }
+        .row { display: flex; gap: 10px; } .col { flex: 1; }
+
+        .stats-box { background: #333; color: #fff; padding: 10px; border-radius: 8px; text-align: center; margin-top: 10px; }
+        .kml-result { font-size: 1.5em; font-weight: bold; color: var(--99-color); }
+
+        .summary-panel { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #ddd; padding: 10px; display: flex; justify-content: space-around; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }
+        .summary-item { text-align: center; }
+        .summary-label { font-size: 0.7em; text-transform: uppercase; color: #777; }
+        .summary-value { font-weight: bold; font-size: 1.1em; }
+        .val-green { color: var(--success); } .val-red { color: var(--danger); } .val-blue { color: var(--uber-color); }
+
+        /* Modal Carros */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
+        .car-list-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; }
+        .btn-add { width: 100%; background: var(--uber-color); color: white; padding: 10px; border: none; border-radius: 6px; margin-top: 10px; cursor: pointer; }
+        .btn-del { background: var(--danger); color: white; margin-left: 5px; }
+
+        /* Scroll & Tabs */
+        .horizontal-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
+        .history-card { min-width: 140px; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 10px; flex-shrink: 0; font-size: 0.85em; }
+        .history-date { font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px; padding-bottom: 5px; text-align: center; }
+        .tabs { display: flex; margin-bottom: 15px; }
+        .tab { flex: 1; text-align: center; padding: 10px; background: #ddd; cursor: pointer; font-weight: bold; }
+        .tab.active { background: var(--uber-color); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        table.report { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        table.report th, table.report td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        table.report th { background-color: var(--uber-light); }
+        .subtotal-row { background-color: #f0f0f0; font-weight: bold; }
+        
+        #loadingOverlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:999; justify-content: center; align-items: center; font-weight: bold; color: var(--uber-color); }
+    </style>
+</head>
+<body>
+
+<div id="loadingOverlay">Sincronizando...</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+    <div class="login-card">
+        <h2>Motorista Pro</h2>
+        <p>Login seguro na nuvem</p>
+        <input type="email" id="email" placeholder="Seu E-mail">
+        <input type="password" id="password" placeholder="Sua Senha">
+        <p id="authError" class="error-msg"></p>
+        <button class="login-btn" onclick="appLogin()">ENTRAR</button>
+        <button class="login-btn register-btn" onclick="appRegister()">CRIAR CONTA</button>
+    </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+    <div id="carModal" class="modal">
+        <div class="modal-content">
+            <h3>Gerenciar Carros</h3>
+            <div id="carList"></div>
+            <hr>
+            <h4>Adicionar Novo</h4>
+            <input type="text" id="newCarModel" placeholder="Modelo (ex: Onix)">
+            <input type="text" id="newCarPlate" placeholder="Placa">
+            <input type="number" id="newCarKmInit" placeholder="KM Inicial">
+            <input type="number" id="newCarKmFinal" placeholder="KM Atual">
+            <button class="btn-add" onclick="addNewCar()">Salvar Carro</button>
+            <button class="btn-add" style="background:#777; margin-top:5px;" onclick="closeModal()">Fechar</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="car-info-block">
+            <div class="header-top">
+                <span style="font-weight: bold; font-size: 1.2em;">Motorista Pro</span>
+                <div>
+                    <button class="btn-small btn-edit" onclick="openCarModal()">Carros</button>
+                    <button class="logout-btn" onclick="appLogout()">Sair</button>
+                </div>
+            </div>
+            <div id="activeCarDisplay" class="car-details">Carregando...</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('launch')">Lançamentos</div>
+            <div class="tab" onclick="switchTab('report')">Relatórios</div>
+        </div>
+
+        <div id="tab-launch" class="tab-content active">
+            <div class="date-nav">
+                <button class="nav-arrow" onclick="changeDate(-1)">&#9664;</button>
+                <input type="date" id="currentDateInput" onchange="loadDateData()" style="width: auto; margin:0; border:none; background: transparent; font-weight:bold;">
+                <button class="nav-arrow" onclick="changeDate(1)">&#9654;</button>
+            </div>
+
+            <div class="section-title">GANHOS</div>
+            <div class="card">
+                <label>Ganhos Uber</label>
+                <input type="number" id="ganhoUber" class="input-uber" placeholder="R$ 0,00" onchange="saveData()">
+                <label>Bônus / Incentivo</label>
+                <div class="row">
+                    <input type="text" id="descBonus" class="input-uber" placeholder="Descrição" onchange="saveData()">
+                    <input type="number" id="ganhoBonus" class="input-uber" placeholder="R$ 0,00" onchange="saveData()">
+                </div>
+                <label>Pix / Dinheiro</label>
+                <input type="number" id="ganhoPix" class="input-uber" placeholder="R$ 0,00" onchange="saveData()">
+                <label>Ganhos 99</label>
+                <input type="number" id="ganho99" class="input-99" placeholder="R$ 0,00" onchange="saveData()">
+            </div>
+
+            <div class="section-title">GASTOS</div>
+            <div class="card">
+                <label>Combustível</label>
+                <input type="number" id="gastoCombustivel" placeholder="R$ 0,00" onchange="saveData()">
+                <label>Outro Gasto 1</label>
+                <div class="row">
+                    <input type="text" id="descGasto1" placeholder="Ex: Cartão Inter" onchange="saveData()">
+                    <input type="number" id="valGasto1" placeholder="R$ 0,00" onchange="saveData()">
+                </div>
+                <label>Outro Gasto 2</label>
+                <div class="row">
+                    <input type="text" id="descGasto2" placeholder="Ex: Manutenção" onchange="saveData()">
+                    <input type="number" id="valGasto2" placeholder="R$ 0,00" onchange="saveData()">
+                </div>
+                <label>Outro Gasto 3</label>
+                <div class="row">
+                    <input type="text" id="descGasto3" placeholder="Ex: Aluguel" onchange="saveData()">
+                    <input type="number" id="valGasto3" placeholder="R$ 0,00" onchange="saveData()">
+                </div>
+            </div>
+
+            <div class="section-title">ESTATÍSTICAS</div>
+            <div class="card">
+                <div class="row">
+                    <div class="col"><label>KM Rodados</label><input type="number" id="kmRodados" placeholder="0" onchange="calcStats(); saveData()"></div>
+                    <div class="col"><label>Litros</label><input type="number" id="litrosGastos" placeholder="0" onchange="calcStats(); saveData()"></div>
+                </div>
+                <label>Viagens Feitas</label>
+                <input type="number" id="qtdViagens" placeholder="0" onchange="saveData()">
+                <div class="stats-box">
+                    <div style="font-size:0.8em; opacity:0.8;">Média de Consumo</div>
+                    <div id="kmPorLitroDisplay" class="kml-result">-- km/L</div>
+                </div>
+            </div>
+            <br><br><br>
+        </div>
+
+        <div id="tab-report" class="tab-content">
+            <div class="section-title">Resumo Semanal</div>
+            <div class="horizontal-scroll" id="weeklyView"></div>
+            <div class="section-title">Resumo Mensal</div>
+            <div class="horizontal-scroll" id="monthlyView"></div>
+            <div class="section-title">Totais Consolidados</div>
+            <table class="report" id="totalTable"></table>
+            <br><br><br>
+        </div>
+    </div>
+
+    <div class="summary-panel">
+        <div class="summary-item"><div class="summary-label">Receita</div><div class="summary-value val-green" id="totalReceita">R$ 0</div></div>
+        <div class="summary-item"><div class="summary-label">Despesa</div><div class="summary-value val-red" id="totalDespesa">R$ 0</div></div>
+        <div class="summary-item"><div class="summary-label">Saldo</div><div class="summary-value val-blue" id="totalSaldo">R$ 0</div></div>
+    </div>
+</div>
+
+<script type="module">
+    // --- IMPORTAÇÃO DO REALTIME DATABASE ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
+        from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    import { getDatabase, ref, set, onValue, get, child } 
+        from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+    // --- CONFIGURAÇÃO CORRETA COM SUAS CHAVES ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyAsiyCJwJPKDEXu9KYYBUK7OnzvTBgv2Es",
+        authDomain: "drivereron-1337e.firebaseapp.com",
+        databaseURL: "https://drivereron-1337e-default-rtdb.firebaseio.com",
+        projectId: "drivereron-1337e",
+        storageBucket: "drivereron-1337e.appspot.com",
+        messagingSenderId: "479287805810",
+        appId: "1:479287805810:web:c9f8a4d170e4646881ffeb"
+    };
+
+    // Inicializa Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let currentUser = null;
+    let appData = { cars: [], activeCarId: null, records: {} };
+    let saveTimeout = null;
+
+    // --- LOGIN / REGISTER ---
+    window.appLogin = () => {
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('password').value;
+        const err = document.getElementById('authError');
+        if(!e || !p) return;
+        err.style.display = 'none';
+        signInWithEmailAndPassword(auth, e, p).catch((error) => { err.textContent = "Erro: " + error.message; err.style.display = 'block'; });
+    }
+
+    window.appRegister = () => {
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('password').value;
+        const err = document.getElementById('authError');
+        if(!e || !p) return alert("Preencha email e senha");
+        createUserWithEmailAndPassword(auth, e, p).then(() => {
+            alert("Conta criada!");
+            saveToFirebase(true);
+        }).catch((error) => { err.textContent = "Erro: " + error.message; err.style.display = 'block'; });
+    }
+
+    window.appLogout = () => { signOut(auth); }
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'block';
+            startRealtimeListener(); 
+        } else {
+            currentUser = null;
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('app-screen').style.display = 'none';
+        }
+    });
+
+    // --- BANCO DE DADOS (REALTIME) ---
+    function startRealtimeListener() {
+        if(!currentUser) return;
+        const userRef = ref(db, 'users/' + currentUser.uid);
+        
+        onValue(userRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                appData = data;
+                if(!appData.records) appData.records = {};
+                if(!appData.cars) appData.cars = [];
+            } else {
+                appData = { cars: [], activeCarId: null, records: {} };
+            }
+            refreshUI();
+        });
+    }
+
+    function saveToFirebase() {
+        if(!currentUser) return;
+        if(saveTimeout) clearTimeout(saveTimeout);
+        
+        saveTimeout = setTimeout(() => {
+            set(ref(db, 'users/' + currentUser.uid), appData)
+                .then(() => console.log("Salvo!"))
+                .catch((e) => console.error("Erro ao salvar", e));
+        }, 500);
+    }
+
+    function refreshUI() {
+        if(!document.getElementById('currentDateInput').value) {
+            document.getElementById('currentDateInput').valueAsDate = new Date();
+        }
+        renderCarList();
+        updateActiveCarDisplay();
+        loadDateData(); 
+        if(document.getElementById('tab-report').classList.contains('active')) {
+            generateReports();
+        }
+    }
+
+    // --- APP LOGIC ---
+    window.openCarModal = () => { renderCarList(); document.getElementById('carModal').style.display = 'flex'; }
+    window.closeModal = () => { document.getElementById('carModal').style.display = 'none'; }
+    
+    window.addNewCar = () => {
+        const model = document.getElementById('newCarModel').value;
+        const plate = document.getElementById('newCarPlate').value;
+        const kmInit = document.getElementById('newCarKmInit').value;
+        const kmFinal = document.getElementById('newCarKmFinal').value;
+        if(!model) return alert("Digite o modelo");
+        
+        const newCar = { id: Date.now(), model, plate, kmInit, kmFinal };
+        if(!appData.cars) appData.cars = [];
+        appData.cars.push(newCar);
+        if(!appData.activeCarId) appData.activeCarId = newCar.id;
+        
+        saveToFirebase();
+        document.getElementById('newCarModel').value = '';
+        document.getElementById('newCarPlate').value = '';
+    }
+
+    window.deleteCar = (id) => {
+        if(confirm("Excluir carro?")) {
+            appData.cars = appData.cars.filter(c => c.id !== id);
+            if(appData.activeCarId === id) appData.activeCarId = null;
+            if(appData.cars.length > 0 && !appData.activeCarId) appData.activeCarId = appData.cars[0].id;
+            saveToFirebase();
+        }
+    }
+
+    window.setActiveCar = (id) => { appData.activeCarId = id; saveToFirebase(); }
+
+    function renderCarList() {
+        const list = document.getElementById('carList');
+        list.innerHTML = '';
+        if(!appData.cars || appData.cars.length === 0) { list.innerHTML = '<p>Sem carros.</p>'; return; }
+        appData.cars.forEach(car => {
+            const div = document.createElement('div');
+            div.className = 'car-list-item';
+            const isActive = car.id === appData.activeCarId;
+            div.innerHTML = `<div onclick="setActiveCar(${car.id})" style="cursor:pointer;flex:1;${isActive?'font-weight:bold;color:var(--uber-color)':''}"> ${car.model} ${isActive?'(ATIVO)':''} </div><button class="btn-small btn-del" onclick="deleteCar(${car.id})">X</button>`;
+            list.appendChild(div);
+        });
+    }
+
+    function updateActiveCarDisplay() {
+        const display = document.getElementById('activeCarDisplay');
+        if(!appData.cars) appData.cars = [];
+        const car = appData.cars.find(c => c.id === appData.activeCarId);
+        display.innerHTML = car ? `<strong>${car.model}</strong> (${car.plate}) | KM In: ${car.kmInit}` : "Nenhum carro ativo.";
+    }
+
+    window.changeDate = (days) => {
+        const dateInput = document.getElementById('currentDateInput');
+        const current = new Date(dateInput.value + 'T00:00:00');
+        current.setDate(current.getDate() + days);
+        dateInput.valueAsDate = current;
+        loadDateData();
+    }
+
+    window.loadDateData = () => {
+        const date = document.getElementById('currentDateInput').value;
+        if(!appData.records) appData.records = {};
+        const data = appData.records[date] || {};
+
+        const setVal = (id, val) => document.getElementById(id).value = val || '';
+        setVal('ganhoUber', data.ganhoUber); setVal('ganho99', data.ganho99);
+        setVal('descBonus', data.descBonus); setVal('ganhoBonus', data.ganhoBonus);
+        setVal('ganhoPix', data.ganhoPix);
+        setVal('gastoCombustivel', data.gastoCombustivel);
+        setVal('descGasto1', data.descGasto1); setVal('valGasto1', data.valGasto1);
+        setVal('descGasto2', data.descGasto2); setVal('valGasto2', data.valGasto2);
+        setVal('descGasto3', data.descGasto3); setVal('valGasto3', data.valGasto3);
+        setVal('kmRodados', data.kmRodados); setVal('litrosGastos', data.litrosGastos);
+        setVal('qtdViagens', data.qtdViagens);
+        calcStats(); updateSummaryFooter();
+    }
+
+    window.saveData = () => {
+        const date = document.getElementById('currentDateInput').value;
+        const getVal = (id) => parseFloat(document.getElementById(id).valu
