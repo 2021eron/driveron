@@ -14,6 +14,7 @@
             --card-bg: #fff;
             --danger: #e74c3c;
             --success: #2ecc71;
+            --gray: #95a5a6;
         }
 
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -49,7 +50,25 @@
         input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1em; }
         .input-uber { border-left: 5px solid var(--uber-color); background-color: #fbf8ff; }
         .input-99 { border-left: 5px solid var(--99-color); background-color: #fffdf5; }
-        .row { display: flex; gap: 10px; } .col { flex: 1; }
+        
+        /* FlexRow Ajustada para Checkbox */
+        .row { display: flex; gap: 8px; align-items: center; } 
+        .col { flex: 1; }
+        .col-desc { flex: 2; }
+        .col-val { flex: 1.5; }
+        .col-check { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            width: 50px;
+        }
+        .check-label { font-size: 0.65em; margin-bottom: 2px; text-transform: uppercase; font-weight: bold; }
+        
+        /* Checkbox grande */
+        input[type=checkbox] {
+            width: 20px; height: 20px; margin: 0; cursor: pointer;
+        }
 
         .stats-box { background: #333; color: #fff; padding: 10px; border-radius: 8px; text-align: center; margin-top: 10px; }
         .kml-result { font-size: 1.5em; font-weight: bold; color: var(--99-color); }
@@ -86,24 +105,22 @@
         table.daily-report {
             width: 100%;
             border-collapse: collapse;
-            /* Removemos o min-width forçado para tentar caber na tela, 
-               mas mantemos o overflow caso o celular seja muito pequeno */
         }
 
         table.daily-report th {
             background-color: #333;
             color: white;
-            padding: 6px 2px; /* Padding reduzido */
-            font-size: 0.7em; /* Fonte reduzida */
+            padding: 6px 2px;
+            font-size: 0.7em;
             text-align: center;
             white-space: nowrap;
         }
 
         table.daily-report td {
             border: 1px solid #eee;
-            padding: 6px 2px; /* Padding reduzido */
+            padding: 6px 2px;
             text-align: center;
-            font-size: 0.75em; /* Fonte reduzida para dados */
+            font-size: 0.75em;
             white-space: nowrap;
         }
 
@@ -114,6 +131,7 @@
         .txt-99 { color: #d4a000; font-weight: bold; }
         .txt-red { color: var(--danger); }
         .txt-green { color: var(--success); }
+        .txt-gray { color: var(--gray); font-style: italic; }
 
         /* Tabela Consolidada (Estilo Original) */
         table.report { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; background: white; }
@@ -190,8 +208,8 @@
                 <input type="number" id="ganhoUber" class="input-uber" placeholder="R$ 0,00" onchange="saveData()">
                 <label>Bônus / Incentivo</label>
                 <div class="row">
-                    <input type="text" id="descBonus" class="input-uber" placeholder="Descrição" onchange="saveData()">
-                    <input type="number" id="ganhoBonus" class="input-uber" placeholder="R$ 0,00" onchange="saveData()">
+                    <input type="text" id="descBonus" class="input-uber col-desc" placeholder="Descrição" onchange="saveData()">
+                    <input type="number" id="ganhoBonus" class="input-uber col-val" placeholder="R$ 0,00" onchange="saveData()">
                 </div>
                 <label>Pix / Dinheiro</label>
                 <input type="number" id="ganhoPix" class="input-uber" placeholder="R$ 0,00" onchange="saveData()">
@@ -201,22 +219,36 @@
 
             <div class="section-title">GASTOS</div>
             <div class="card">
-                <label>Combustível</label>
+                <label>Combustível (Abate direto)</label>
                 <input type="number" id="gastoCombustivel" placeholder="R$ 0,00" onchange="saveData()">
-                <label>Outro Gasto 1</label>
+                
+                <label>Outros Gastos (Marque para abater)</label>
+                
                 <div class="row">
-                    <input type="text" id="descGasto1" placeholder="Ex: Cartão Inter" onchange="saveData()">
-                    <input type="number" id="valGasto1" placeholder="R$ 0,00" onchange="saveData()">
+                    <input type="text" id="descGasto1" class="col-desc" placeholder="Ex: Cartão Inter" onchange="saveData()">
+                    <input type="number" id="valGasto1" class="col-val" placeholder="R$ 0,00" onchange="saveData()">
+                    <div class="col-check">
+                        <span class="check-label">Pago?</span>
+                        <input type="checkbox" id="checkGasto1" onchange="saveData()">
+                    </div>
                 </div>
-                <label>Outro Gasto 2</label>
+
                 <div class="row">
-                    <input type="text" id="descGasto2" placeholder="Ex: Manutenção" onchange="saveData()">
-                    <input type="number" id="valGasto2" placeholder="R$ 0,00" onchange="saveData()">
+                    <input type="text" id="descGasto2" class="col-desc" placeholder="Ex: Manutenção" onchange="saveData()">
+                    <input type="number" id="valGasto2" class="col-val" placeholder="R$ 0,00" onchange="saveData()">
+                    <div class="col-check">
+                        <span class="check-label">Pago?</span>
+                        <input type="checkbox" id="checkGasto2" onchange="saveData()">
+                    </div>
                 </div>
-                <label>Outro Gasto 3</label>
+
                 <div class="row">
-                    <input type="text" id="descGasto3" placeholder="Ex: Aluguel" onchange="saveData()">
-                    <input type="number" id="valGasto3" placeholder="R$ 0,00" onchange="saveData()">
+                    <input type="text" id="descGasto3" class="col-desc" placeholder="Ex: Aluguel" onchange="saveData()">
+                    <input type="number" id="valGasto3" class="col-val" placeholder="R$ 0,00" onchange="saveData()">
+                    <div class="col-check">
+                        <span class="check-label">Pago?</span>
+                        <input type="checkbox" id="checkGasto3" onchange="saveData()">
+                    </div>
                 </div>
             </div>
 
@@ -254,7 +286,7 @@
 
     <div class="summary-panel">
         <div class="summary-item"><div class="summary-label">Receita</div><div class="summary-value val-green" id="totalReceita">R$ 0</div></div>
-        <div class="summary-item"><div class="summary-label">Despesa</div><div class="summary-value val-red" id="totalDespesa">R$ 0</div></div>
+        <div class="summary-item"><div class="summary-label">Despesa (PG)</div><div class="summary-value val-red" id="totalDespesa">R$ 0</div></div>
         <div class="summary-item"><div class="summary-label">Saldo</div><div class="summary-value val-blue" id="totalSaldo">R$ 0</div></div>
     </div>
 </div>
@@ -424,13 +456,18 @@
         const data = appData.records[date] || {};
 
         const setVal = (id, val) => document.getElementById(id).value = val || '';
+        const setCheck = (id, val) => document.getElementById(id).checked = val || false;
+
         setVal('ganhoUber', data.ganhoUber); setVal('ganho99', data.ganho99);
         setVal('descBonus', data.descBonus); setVal('ganhoBonus', data.ganhoBonus);
         setVal('ganhoPix', data.ganhoPix);
         setVal('gastoCombustivel', data.gastoCombustivel);
-        setVal('descGasto1', data.descGasto1); setVal('valGasto1', data.valGasto1);
-        setVal('descGasto2', data.descGasto2); setVal('valGasto2', data.valGasto2);
-        setVal('descGasto3', data.descGasto3); setVal('valGasto3', data.valGasto3);
+        
+        // Carrega valores e status de pagamento
+        setVal('descGasto1', data.descGasto1); setVal('valGasto1', data.valGasto1); setCheck('checkGasto1', data.paidGasto1);
+        setVal('descGasto2', data.descGasto2); setVal('valGasto2', data.valGasto2); setCheck('checkGasto2', data.paidGasto2);
+        setVal('descGasto3', data.descGasto3); setVal('valGasto3', data.valGasto3); setCheck('checkGasto3', data.paidGasto3);
+        
         setVal('kmRodados', data.kmRodados); setVal('litrosGastos', data.litrosGastos);
         setVal('qtdViagens', data.qtdViagens);
         calcStats(); updateSummaryFooter();
@@ -440,15 +477,20 @@
         const date = document.getElementById('currentDateInput').value;
         const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
         const getStr = (id) => document.getElementById(id).value;
+        const getCheck = (id) => document.getElementById(id).checked;
+
         if(!appData.records) appData.records = {};
 
         appData.records[date] = {
             ganhoUber: getVal('ganhoUber'), ganho99: getVal('ganho99'),
             descBonus: getStr('descBonus'), ganhoBonus: getVal('ganhoBonus'), ganhoPix: getVal('ganhoPix'),
             gastoCombustivel: getVal('gastoCombustivel'),
-            descGasto1: getStr('descGasto1'), valGasto1: getVal('valGasto1'),
-            descGasto2: getStr('descGasto2'), valGasto2: getVal('valGasto2'),
-            descGasto3: getStr('descGasto3'), valGasto3: getVal('valGasto3'),
+            
+            // Salva status de pago
+            descGasto1: getStr('descGasto1'), valGasto1: getVal('valGasto1'), paidGasto1: getCheck('checkGasto1'),
+            descGasto2: getStr('descGasto2'), valGasto2: getVal('valGasto2'), paidGasto2: getCheck('checkGasto2'),
+            descGasto3: getStr('descGasto3'), valGasto3: getVal('valGasto3'), paidGasto3: getCheck('checkGasto3'),
+            
             kmRodados: getVal('kmRodados'), litrosGastos: getVal('litrosGastos'), qtdViagens: getVal('qtdViagens')
         };
         updateSummaryFooter();
@@ -465,8 +507,17 @@
         const date = document.getElementById('currentDateInput').value;
         if(!appData.records) appData.records = {};
         const r = appData.records[date] || {};
+        
         const rec = (r.ganhoUber||0) + (r.ganho99||0) + (r.ganhoBonus||0) + (r.ganhoPix||0);
-        const desp = (r.gastoCombustivel||0) + (r.valGasto1||0) + (r.valGasto2||0) + (r.valGasto3||0);
+        
+        // SÓ SOMA GASTO SE ESTIVER PAGO (CHECKBOX MARCADA)
+        let outrosGastos = 0;
+        if(r.paidGasto1) outrosGastos += (r.valGasto1||0);
+        if(r.paidGasto2) outrosGastos += (r.valGasto2||0);
+        if(r.paidGasto3) outrosGastos += (r.valGasto3||0);
+
+        const desp = (r.gastoCombustivel||0) + outrosGastos;
+        
         document.getElementById('totalReceita').textContent = `R$ ${rec.toFixed(2)}`;
         document.getElementById('totalDespesa').textContent = `R$ ${desp.toFixed(2)}`;
         const saldo = rec - desp;
@@ -489,7 +540,7 @@
         }
     }
 
-    // --- GERAÇÃO DE RELATÓRIOS (ATUALIZADA) ---
+    // --- RELATÓRIOS ---
     window.generateReports = () => {
         const dailyTable = document.getElementById('dailyReportTable');
         const totalTable = document.getElementById('totalTable');
@@ -500,11 +551,9 @@
         if(!appData.records) appData.records = {};
         const dates = Object.keys(appData.records).sort().reverse();
 
-        // Variáveis para totais consolidados (Lógica Original)
         let sUber=0, s99=0, sBonus=0, sPix=0, sComb=0, sRec=0, sDesp=0;
-        let cats = {}; // Para agrupar Outros Gastos por descrição
+        let cats = {}; 
 
-        // Cabeçalho Tabela Diária (Compacta)
         let tableHTML = `
             <thead>
                 <tr>
@@ -524,29 +573,44 @@
         dates.forEach(d => {
             const r = appData.records[d];
             
-            // --- CÁLCULOS TOTAIS (Lógica Original) ---
             const gTotal = (r.ganhoUber||0)+(r.ganho99||0)+(r.ganhoBonus||0)+(r.ganhoPix||0);
-            const extra = (r.valGasto1||0)+(r.valGasto2||0)+(r.valGasto3||0);
-            const gast = (r.gastoCombustivel||0)+extra;
+            
+            // Lógica de gastos pagos/pendentes
+            let extraPago = 0;
+            let extraPendente = 0;
 
-            // Agrupa categorias de gastos
             [1,2,3].forEach(i => {
-                if(r['valGasto'+i] > 0) {
-                    const n = (r['descGasto'+i]||'Outros').toUpperCase().trim();
-                    cats[n] = (cats[n]||0) + r['valGasto'+i];
+                const val = r['valGasto'+i] || 0;
+                if(val > 0) {
+                    if(r['paidGasto'+i]) {
+                        // Está pago, soma na despesa oficial
+                        const n = (r['descGasto'+i]||'Outros').toUpperCase().trim();
+                        cats[n] = (cats[n]||0) + val;
+                        extraPago += val;
+                    } else {
+                        // Não está pago, soma só para exibir visualmente como pendente
+                        extraPendente += val;
+                    }
                 }
             });
+
+            const gast = (r.gastoCombustivel||0) + extraPago; // Só soma o que foi pago
 
             sUber += r.ganhoUber||0; s99 += r.ganho99||0; sBonus += r.ganhoBonus||0;
             sPix += r.ganhoPix||0; sComb += r.gastoCombustivel||0;
             sRec += gTotal; sDesp += gast;
 
-            // --- TABELA DIÁRIA (Valores para exibição) ---
+            // Display
             const vOutrosGanhos = (r.ganhoBonus || 0) + (r.ganhoPix || 0);
             const km = r.kmRodados || 0;
             const litros = r.litrosGastos || 0;
             const media = (km > 0 && litros > 0) ? (km / litros).toFixed(1) : '-';
             const diaMes = d.split('-').reverse().slice(0,2).join('/');
+
+            // formata Outros Gastos para exibir pendência se houver
+            let displayOutrosGastos = '';
+            if(extraPago > 0) displayOutrosGastos = extraPago.toFixed(0);
+            if(extraPendente > 0) displayOutrosGastos += (displayOutrosGastos ? '<br>' : '') + `<span style="font-size:0.8em; color:gray">(${extraPendente} Pen)</span>`;
 
             tableHTML += `
                 <tr>
@@ -555,7 +619,7 @@
                     <td class="txt-99">${(r.ganho99||0) > 0 ? (r.ganho99||0).toFixed(0) : ''}</td>
                     <td class="txt-green">${vOutrosGanhos > 0 ? vOutrosGanhos.toFixed(0) : ''}</td>
                     <td class="txt-red">${(r.gastoCombustivel||0) > 0 ? (r.gastoCombustivel||0).toFixed(0) : ''}</td>
-                    <td class="txt-red">${extra > 0 ? extra.toFixed(0) : ''}</td>
+                    <td class="txt-red">${displayOutrosGastos}</td>
                     <td>${km > 0 ? km : ''}</td>
                     <td>${media !== '-' ? media : ''}</td>
                 </tr>
@@ -564,7 +628,7 @@
         tableHTML += `</tbody>`;
         dailyTable.innerHTML = tableHTML;
 
-        // --- TABELA CONSOLIDADA (Layout Original) ---
+        // Consolidado
         let catHtml = '';
         for(let c in cats) catHtml += `<tr><td style="padding-left:15px">&bull; ${c}</td><td>R$ ${cats[c].toFixed(2)}</td></tr>`;
 
@@ -579,11 +643,10 @@
             <tr><td colspan="2" style="background:#eee;height:5px"></td></tr>
             <tr><td>Combustível</td><td>R$ ${sComb.toFixed(2)}</td></tr>
             ${catHtml}
-            <tr class="subtotal-row"><td class="val-red">TOTAL GASTOS</td><td class="val-red">R$ ${sDesp.toFixed(2)}</td></tr>
+            <tr class="subtotal-row"><td class="val-red">TOTAL GASTOS (Pagos)</td><td class="val-red">R$ ${sDesp.toFixed(2)}</td></tr>
             <tr style="background:#333;color:white;font-size:1.2em"><td>SALDO</td><td>R$ ${(sRec-sDesp).toFixed(2)}</td></tr>
         `;
 
-        // Rodapé Fixo
         document.getElementById('totalReceita').textContent = `R$ ${sRec.toFixed(2)}`;
         document.getElementById('totalDespesa').textContent = `R$ ${sDesp.toFixed(2)}`;
         document.getElementById('totalSaldo').textContent = `R$ ${(sRec-sDesp).toFixed(2)}`;
